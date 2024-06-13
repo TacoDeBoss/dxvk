@@ -301,12 +301,9 @@ namespace dxvk {
       msInfo.minSampleShading     = 1.0f;
     }
 
-    // Alpha to coverage is not supported with sample mask exports.
-    cbUseDynamicAlphaToCoverage = !fs || !fs->flags().test(DxvkShaderFlag::ExportsSampleMask);
-
     msSampleMask                  = state.ms.sampleMask() & ((1u << msInfo.rasterizationSamples) - 1);
     msInfo.pSampleMask            = &msSampleMask;
-    msInfo.alphaToCoverageEnable  = state.ms.enableAlphaToCoverage() && cbUseDynamicAlphaToCoverage;
+    msInfo.alphaToCoverageEnable  = state.ms.enableAlphaToCoverage();
 
     // We need to be fully consistent with the pipeline state here, and
     // while we could consistently infer it, just don't take any chances
@@ -328,7 +325,6 @@ namespace dxvk {
            && msInfo.alphaToOneEnable         == other.msInfo.alphaToOneEnable
            && msSampleMask                    == other.msSampleMask
            && cbUseDynamicBlendConstants      == other.cbUseDynamicBlendConstants
-           && cbUseDynamicAlphaToCoverage     == other.cbUseDynamicAlphaToCoverage
            && feedbackLoop                    == other.feedbackLoop;
 
     for (uint32_t i = 0; i < rtInfo.colorAttachmentCount && eq; i++)
@@ -368,7 +364,6 @@ namespace dxvk {
     hash.add(uint32_t(msInfo.alphaToOneEnable));
     hash.add(uint32_t(msSampleMask));
     hash.add(uint32_t(cbUseDynamicBlendConstants));
-    hash.add(uint32_t(cbUseDynamicAlphaToCoverage));
     hash.add(uint32_t(feedbackLoop));
 
     for (uint32_t i = 0; i < rtInfo.colorAttachmentCount; i++)
@@ -407,8 +402,7 @@ namespace dxvk {
       dynamicStates[dynamicStateCount++] = VK_DYNAMIC_STATE_RASTERIZATION_SAMPLES_EXT;
       dynamicStates[dynamicStateCount++] = VK_DYNAMIC_STATE_SAMPLE_MASK_EXT;
 
-      if (device->features().extExtendedDynamicState3.extendedDynamicState3AlphaToCoverageEnable
-       && state.cbUseDynamicAlphaToCoverage)
+      if (device->features().extExtendedDynamicState3.extendedDynamicState3AlphaToCoverageEnable)
         dynamicStates[dynamicStateCount++] = VK_DYNAMIC_STATE_ALPHA_TO_COVERAGE_ENABLE_EXT;
     }
 
@@ -950,12 +944,8 @@ namespace dxvk {
     if (m_barrier.access & VK_ACCESS_SHADER_WRITE_BIT)
       m_flags.set(DxvkGraphicsPipelineFlag::HasStorageDescriptors);
 
-    if (m_shaders.fs != nullptr) {
-      if (m_shaders.fs->flags().test(DxvkShaderFlag::HasSampleRateShading))
-        m_flags.set(DxvkGraphicsPipelineFlag::HasSampleRateShading);
-      if (m_shaders.fs->flags().test(DxvkShaderFlag::ExportsSampleMask))
-        m_flags.set(DxvkGraphicsPipelineFlag::HasSampleMaskExport);
-    }
+    if (m_shaders.fs != nullptr && m_shaders.fs->flags().test(DxvkShaderFlag::HasSampleRateShading))
+      m_flags.set(DxvkGraphicsPipelineFlag::HasSampleRateShading);
   }
   
   
@@ -1193,8 +1183,7 @@ namespace dxvk {
           return false;
 
         if (!canUseDynamicAlphaToCoverage
-         && (state.ms.enableAlphaToCoverage())
-         && !m_shaders.fs->flags().test(DxvkShaderFlag::ExportsSampleMask))
+         && (state.ms.enableAlphaToCoverage()))
           return false;
       }
     }

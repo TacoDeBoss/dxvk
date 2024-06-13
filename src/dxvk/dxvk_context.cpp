@@ -5810,8 +5810,7 @@ namespace dxvk {
       VkSampleMask sampleMask = m_state.gp.state.ms.sampleMask() & ((1u << sampleCount) - 1u);
       m_cmd->cmdSetMultisampleState(sampleCount, sampleMask);
 
-      if (m_device->features().extExtendedDynamicState3.extendedDynamicState3AlphaToCoverageEnable
-       && !m_state.gp.flags.test(DxvkGraphicsPipelineFlag::HasSampleMaskExport))
+      if (m_device->features().extExtendedDynamicState3.extendedDynamicState3AlphaToCoverageEnable)
         m_cmd->cmdSetAlphaToCoverageState(m_state.gp.state.ms.enableAlphaToCoverage());
     }
 
