@@ -31,6 +31,7 @@ namespace dxvk {
     HasTransformFeedback,
     HasStorageDescriptors,
     HasSampleRateShading,
+    HasSampleMaskExport,
   };
 
   using DxvkGraphicsPipelineFlags = Flags<DxvkGraphicsPipelineFlag>;
