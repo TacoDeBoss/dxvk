@@ -31,7 +31,6 @@ namespace dxvk {
     HasTransformFeedback,
     HasStorageDescriptors,
     HasSampleRateShading,
-    HasSampleMaskExport,
   };
 
   using DxvkGraphicsPipelineFlags = Flags<DxvkGraphicsPipelineFlag>;
@@ -117,7 +116,6 @@ namespace dxvk {
 
     VkSampleMask                                    msSampleMask               = 0u;
     VkBool32                                        cbUseDynamicBlendConstants = VK_FALSE;
-    VkBool32                                        cbUseDynamicAlphaToCoverage = VK_FALSE;
 
     std::array<VkPipelineColorBlendAttachmentState, MaxNumRenderTargets> cbAttachments  = { };
     std::array<VkFormat,                            MaxNumRenderTargets> rtColorFormats = { };
